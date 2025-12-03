@@ -13,6 +13,13 @@ Off‑the‑shelf software that integrates with the ECU and dash (such as RaceSt
 
 This project is also a training ground for new software sub‑team members to learn modern software development practices in the context of real telemetry and performance questions. Contributors gain experience in data engineering, numerical analysis, and visualization while shipping tools that the rest of the team uses on a regular basis.
 ​
+
+**Videos to get started**
+
+[Race Telemetry for driver performance](https://youtu.be/lfqkhCCq5sg?si=wPToaZO_qaVD7nn6)
+
+[Data Analysis in Racestudio3](https://youtu.be/IQTP2LN9oNg?si=Uc9kALhEnzJ77W5h)
+
 <br />
 
 ## Setup
