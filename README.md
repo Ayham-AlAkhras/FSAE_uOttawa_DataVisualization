@@ -22,6 +22,14 @@ This project is also a training ground for new software sub‑team members to le
 
 [Formula SAE design competition format](https://www.youtube.com/watch?v=DqKXPHdX1aY)
 
+
+**License**
+
+Copyright (c) 2025 Formula uOttawa Contributors.
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
 <br />
 
 ## Setup
@@ -46,7 +54,7 @@ Then, verify your dearpygui installation by running the following command:
 
 `python -m dearpygui.demo`
 
-You should see a demo program showing off the features. You can now install Git and your preferred integrated development environment (IDE) to contribute to the software! Make sure to set your environment to FSAEDataGUI in the IDE. You should also be familiar with using branches and making pull requests on Git, you can find many good tutorials on YouTube. We recommend using (GitHub Desktop)[https://desktop.github.com/download/] and (VSCode)[https://code.visualstudio.com/].
+You should see a demo program showing off the features. You can now install Git and your preferred integrated development environment (IDE) to contribute to the software! Make sure to set your environment to FSAEDataGUI in the IDE. You should also be familiar with using branches and making pull requests on Git, you can find many good tutorials on YouTube. We recommend using [GitHub Desktop](https://desktop.github.com/download/) and [VSCode](https://code.visualstudio.com/).
 
 <br />
 
