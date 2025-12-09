@@ -12,9 +12,6 @@ def on_file_selected(sender, app_data):
     # Full path to the file the user selected
     file_path = app_data["file_path_name"]
 
-    # Show what we're doing
-    dpg.set_value("status", f"Loading: {file_path}")
-
     try:
         # Use the existing class you were given
         importer = MoTeCImporter(file_path)
@@ -23,7 +20,7 @@ def on_file_selected(sender, app_data):
         df = importer.import_and_validate()
 
         # If we got here, it worked
-        dpg.set_value("status", "✅ Import successful")
+        dpg.set_value("status", "Import successful")
 
         # Show the first 5 rows in the text box
         preview_text = df.head().to_string()

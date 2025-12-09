@@ -12,22 +12,34 @@ class MoTeCImporter:
 
         self.path = path
         self.df = None
+        self.metadata = {} # Metadata that is located at the top of the csv files
+        self.units = {}    # Units for each channel
+    
+    def _find_header_index(self):
+        
+        target = '"Time","GPS Speed","GPS Nsat","GPS LatAcc","GPS LonAcc","GPS Slope","GPS Heading","GPS Gyro","GPS Altitude","GPS PosAccuracy","GPS SpdAccuracy","GPS Radius","GPS Latitude","GPS Longitude"'
+        
+        with open(self.path, "r", encoding="utf-8", errors="ignore") as f:
+            for i, line in enumerate(f):
+                if line.strip() == target:
+                    return i
+        raise ValueError('Could not find header row starting with "Time". Is this a RaceStudio CSV export?')
 
     #Loads the file, checks for errors, ignores certain info (such as comments in MoTeC), saves the file
-    def load (self):
+    def load(self):
 
-        if not os.path.exists(self.path):
-            raise FileNotFoundError(f"File not found: {self.path}")
-
-        try:
-            df = pd.read_csv(self.path, comment='#')
-
-        except Exception as e:
-            raise ValueError(f"Failed to load CSV: {e}")
+        header_index = self._find_header_index()
+        df = pd.read_csv(self.path, skiprows=header_index)
 
         if df.empty:
             raise ValueError("CSV loaded, no data found")
 
+        # First row after header is the units row
+        units_row = df.iloc[0]
+        self.units = units_row.to_dict()
+
+        # Drop units row from data and convert to numeric where possible
+        df = df.iloc[1:].reset_index(drop=True)
         df = df.apply(pd.to_numeric, errors= "ignore")
 
         self.df = df
@@ -53,13 +65,12 @@ class MoTeCImporter:
 
     def import_and_validate(self):
 
+        if not os.path.exists(self.path):
+            raise FileNotFoundError(f"File not found: {self.path}")
+        
         self.load()
         self.validate_not_all_zero()
         self.validate_variation()
-
-        print("MoTeC CSV Successfully Imported")
-        print("\nPreview of data:")
-        print(self.df.head(), "\n")
 
         return self.df
 
