@@ -2,13 +2,13 @@
 
 import os
 import pandas as pd 
-import numpy as np 
 
 class MoTeCImporter:
 
     def __init__(self, path):
         self.path = path            # Path to the CSV file
         self.df = None              # DataFrame to hold the loaded data
+        self.df_excl_time = None    # DataFrame excluding 'Time' column
         self.metadata = {}          # Metadata that is located at the top of the csv files
         self.channels = {}          # Channel items with their units
         self.header_index = None    # Index of the header row
@@ -51,6 +51,8 @@ class MoTeCImporter:
             raise ValueError(f"Error converting data to numeric: {e}")
         
         self.df = df
+        self.df_excl_time = df.drop(columns=['Time'])
+        print("[DEBUG] Data loaded successfully with shape:", self.df.shape)
         
     def _find_header_index_and_metadata(self):
         """Finds the index of the header row starting with 'Time'."""
@@ -67,6 +69,9 @@ class MoTeCImporter:
                 if not s:
                     continue
                 
+                while s.count('"') % 2 != 0:
+                    s += '\n' + next(f).strip()
+                    
                 if s.startswith(target):
                     if encountered:
                         self.header_index = i
@@ -86,24 +91,29 @@ class MoTeCImporter:
     def _validate_not_all_zero(self):
         """Validates to make sure not all numeric data is zero."""
 
-        numeric_df = self.df.select_dtypes(include=[np.number])
-
-        if numeric_df.empty:
+        if self.df.empty:
             raise ValueError("No Numeric Data Found")
-        else:
-            print("[DEBUG] Numeric data check passed.")
+        print("[DEBUG] Numeric data check passed.")
+        
+        if self.df_excl_time.empty:
+            raise ValueError("No Numeric Data Found (excluding 'Time' column)")
+        print("[DEBUG] Numeric data check (excluding 'Time') passed.")
 
-        if (numeric_df == 0).all().all():
+        if (self.df == 0).all().all():
             raise ValueError("All numeric values are 0.")
-        else:
-            print("[DEBUG] Non-zero data check passed.")
+        print("[DEBUG] Non-zero data check passed.")
+        
+        if (self.df_excl_time == 0).all().all():
+            raise ValueError("All numeric values are 0 (excluding 'Time' column).")
+        print("[DEBUG] Non-zero data check (excluding 'Time') passed.")
 
     def _validate_variation(self):
         """Validates to make sure sensors aren't frozen or logs are corrupted."""
 
-        numeric_df = self.df.select_dtypes(include=[np.number])
-
-        if all(numeric_df[col].nunique() <= 1 for col in numeric_df.columns):
-            raise ValueError("Channels show no variation.")
-        else:
-            print("[DEBUG] Data variation check passed.")
+        if all(self.df[col].nunique() <= 1 for col in self.df.columns):
+            raise ValueError("All sensors show no variation.")
+        print("[DEBUG] Data variation check passed.")
+        
+        if all(self.df_excl_time[col].nunique() <= 1 for col in self.df_excl_time.columns):
+            raise ValueError("All sensors show no variation (excluding 'Time' column).")
+        print("[DEBUG] Data variation check (excluding 'Time') passed.")

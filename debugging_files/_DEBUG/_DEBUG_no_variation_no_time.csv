@@ -1,0 +1,19 @@
+"Format","AiM CSV File"
+"Session","NO GPS"
+"Vehicle","Pimp Mobile"
+"Racer","Maries Mother"
+"Championship","Your mom"
+"Comment","2025-06-11"
+"Date","Saturday, May 31, 2025"
+"Time","5:19 PM"
+"Sample Rate","20"
+"Duration","64"
+"Segment","Session"
+"Beacon Markers","64"
+"Segment Times","1:04.000"
+
+"Time","GPS Speed","GPS Nsat","GPS LatAcc","GPS LonAcc","GPS Slope","GPS Heading","GPS Gyro","GPS Altitude","GPS PosAccuracy","GPS SpdAccuracy","GPS Radius","GPS Latitude","GPS Longitude"
+"s","km/h"," ","g","g","deg","deg/s","deg/s","m","m","km/h","m","deg","deg"
+0,5,3,0.1,0.2,1,10,2,100,20,1,50,44.5,-79.18
+1,5,3,0.1,0.2,1,10,2,100,20,1,50,44.5,-79.18
+2,5,3,0.1,0.2,1,10,2,100,20,1,50,44.5,-79.18
