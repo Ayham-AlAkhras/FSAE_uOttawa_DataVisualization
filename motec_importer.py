@@ -4,36 +4,46 @@ import os
 import pandas as pd 
 import numpy as np 
 
-
 class MoTeCImporter:
 
-    #Stores file path
     def __init__(self, path):
-
-        self.path = path
-        self.df = None
-        self.metadata = {} # Metadata that is located at the top of the csv files
-        self.units = {}    # Units for each channel
+        self.path = path            # Path to the CSV file
+        self.raw = open(
+            self.path, "r", 
+            encoding="utf-8", 
+            errors="ignore")
+        self.df = None              # DataFrame to hold the loaded data
+        self.metadata = {}          # Metadata that is located at the top of the csv files
+        self.units = {}             # Units for each channel
+        self.header_index = None    # Index of the header row
     
     def _find_header_index(self):
         
-        target = '"Time","GPS Speed","GPS Nsat","GPS LatAcc","GPS LonAcc","GPS Slope","GPS Heading","GPS Gyro","GPS Altitude","GPS PosAccuracy","GPS SpdAccuracy","GPS Radius","GPS Latitude","GPS Longitude"'
-        
-        with open(self.path, "r", encoding="utf-8", errors="ignore") as f:
-            for i, line in enumerate(f):
-                if line.strip() == target:
-                    return i
+        target = '"Time"'
+        encountered = False
+        for i, line in enumerate(self.raw):
+            if line.strip().startswith(target) and encountered is True:
+                return i
+            elif line.strip().startswith(target):
+                encountered = True
         raise ValueError('Could not find header row starting with "Time". Is this a RaceStudio CSV export?')
 
+    def fetch_metadata(self, df):
+        
+        pass
+    
     #Loads the file, checks for errors, ignores certain info (such as comments in MoTeC), saves the file
     def load(self):
 
         header_index = self._find_header_index()
-        df = pd.read_csv(self.path, skiprows=header_index)
+        df = pd.read_csv(
+            self.path, 
+            skiprows=header_index
+            )
 
         if df.empty:
             raise ValueError("CSV loaded, no data found")
-
+        
         # First row after header is the units row
         units_row = df.iloc[0]
         self.units = units_row.to_dict()

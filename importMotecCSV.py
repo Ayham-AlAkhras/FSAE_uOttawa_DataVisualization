@@ -23,7 +23,7 @@ def on_file_selected(sender, app_data):
         dpg.set_value("status", "Import successful")
 
         # Show the first 5 rows in the text box
-        preview_text = df.head().to_string()
+        preview_text = df.to_string()
         dpg.set_value("preview", preview_text)
 
     except Exception as e:
