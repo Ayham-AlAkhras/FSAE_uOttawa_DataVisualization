@@ -8,44 +8,25 @@ class MoTeCImporter:
 
     def __init__(self, path):
         self.path = path            # Path to the CSV file
-        self.raw = open(
-            self.path, "r", 
-            encoding="utf-8", 
-            errors="ignore")
         self.df = None              # DataFrame to hold the loaded data
         self.metadata = {}          # Metadata that is located at the top of the csv files
         self.channels = {}          # Channel items with their units
         self.header_index = None    # Index of the header row
-    
-    def _find_header_index(self):
-        """Finds the index of the header row starting with 'Time'."""
-        
-        target = '"Time"'
-        encountered = False
-        for i, line in enumerate(self.raw):
-            if line.strip().startswith(target) and encountered is True:
-                self.header_index = i
-                return i
-            elif line.strip().startswith(target):
-                encountered = True
-        raise ValueError('Could not find header row starting with "Time". Is this a RaceStudio CSV export?')
 
+    def import_and_validate(self):
+        """Global method to import and validate the MoTeC CSV file."""
 
-    def _fetch_metadata(self):
-        """Extracts metadata from the top of the CSV file."""
+        if not os.path.exists(self.path):
+            raise FileNotFoundError(f"File not found: {self.path}")
         
-        metadata = {}
-        self.raw.seek(0)  # Reset file pointer to the beginning
-        for i, line in enumerate(self.raw):
-            if line.strip() == "":
-                continue
-            if i >= self.header_index - 1:
-                break
-            key, value = line.split(',', 1)
-            metadata[key] = value
-        self.metadata = metadata
-    
-    def load(self):
+        self._find_header_index_and_metadata()
+        self._load()
+        self._validate_not_all_zero()
+        self._validate_variation()
+
+        return self.df
+
+    def _load(self):
         """
         Loads the file, checks for errors, ignores certain 
         info (such as comments in MoTeC), saves the file
@@ -53,7 +34,7 @@ class MoTeCImporter:
 
         df = pd.read_csv(
             self.path, 
-            skiprows=self._find_header_index(),
+            skiprows=self.header_index,
             )
         if df.empty:
             raise ValueError("CSV loaded, no data found")
@@ -69,42 +50,60 @@ class MoTeCImporter:
         except Exception as e:
             raise ValueError(f"Error converting data to numeric: {e}")
         
-        self._fetch_metadata()
         self.df = df
+        
+    def _find_header_index_and_metadata(self):
+        """Finds the index of the header row starting with 'Time'."""
+                
+        target = '"Time"'
+        encountered = False
+        metadata = {}
+        
+        with open(self.path, "r", encoding="utf-8", errors="ignore") as f:
+            for i, line in enumerate(f):
+                s = line.strip()
+                
+                # Skip empty lines
+                if not s:
+                    continue
+                
+                if s.startswith(target):
+                    if encountered:
+                        self.header_index = i
+                        print(f"[DEBUG] Header row found at index: {self.header_index}")
+                        break
+                    encountered = True
 
-    #Validates to make sure it isn't all zero
-    def validate_not_all_zero(self):
+                key, value = s.split(',', 1)
+                metadata[key.strip().strip('"')] = value.strip().strip('"')
+        
+        if self.header_index is None:
+            raise ValueError("Header row starting with 'Time' not found.")
+        
+        self.metadata = metadata
+        print("[DEBUG] Metadata extracted:", self.metadata)
+
+    def _validate_not_all_zero(self):
+        """Validates to make sure not all numeric data is zero."""
 
         numeric_df = self.df.select_dtypes(include=[np.number])
 
         if numeric_df.empty:
             raise ValueError("No Numeric Data Found")
+        else:
+            print("[DEBUG] Numeric data check passed.")
 
         if (numeric_df == 0).all().all():
             raise ValueError("All numeric values are 0.")
+        else:
+            print("[DEBUG] Non-zero data check passed.")
 
-    #Validates to make sure sensors aren't frozen or logs are corrupted
-    def validate_variation(self):
+    def _validate_variation(self):
+        """Validates to make sure sensors aren't frozen or logs are corrupted."""
 
         numeric_df = self.df.select_dtypes(include=[np.number])
 
         if all(numeric_df[col].nunique() <= 1 for col in numeric_df.columns):
             raise ValueError("Channels show no variation.")
-
-    def import_and_validate(self):
-
-        if not os.path.exists(self.path):
-            raise FileNotFoundError(f"File not found: {self.path}")
-        
-        self.load()
-        self.validate_not_all_zero()
-        self.validate_variation()
-
-        return self.df
-
-    def get_channel(self, name):
-
-        if name not in self.df.columns:
-            raise KeyError(f"Channel '{name}' not found.")
-
-        return self.df[name]
+        else:
+            print("[DEBUG] Data variation check passed.")

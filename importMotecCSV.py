@@ -3,7 +3,6 @@
 import dearpygui.dearpygui as dpg
 from motec_importer import MoTeCImporter
 
-
 def on_file_selected(sender, app_data):
     """
     Called automatically when the user picks a file in the file dialog.
@@ -22,8 +21,7 @@ def on_file_selected(sender, app_data):
         # If we got here, it worked
         dpg.set_value("status", "Import successful")
 
-        # Show the first 5 rows in the text box
-        preview_text = df.head().to_string()
+        preview_text = df.to_string()
         dpg.set_value("preview", preview_text)
 
     except Exception as e:
@@ -31,8 +29,9 @@ def on_file_selected(sender, app_data):
         dpg.set_value("status", f"Error: {e}")
         dpg.set_value("preview", "")
 
-
 def main():
+    """Main function to set up the DearPyGui interface."""
+    
     # Required DearPyGui setup
     dpg.create_context()
 
